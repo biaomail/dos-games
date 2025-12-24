@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOS Game Player</title>
+    <link rel="stylesheet" href="lib/js-dos.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #fullscreenBtn {
+            background: #10b981;
+            color: white;
+        }
+
+        #fullscreenBtn:hover {
+            background: #059669;
+        }
+
+
+
+        #restartBtn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        #restartBtn:hover {
+            background: #d97706;
+        }
+
+        #homeBtn {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e0e7ef 100%);
+            color: #333;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 12px 24px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+            border: 1.5px solid #d1d5db;
+        }
+
+        #homeBtn:hover {
+            background: linear-gradient(135deg, #e0e7ef 0%, #f3f4f6 100%);
+            color: #111;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+        }
+
+        #dosContainer {
+            width: 100%;
+            height: 70vh;
+            min-height: 500px;
+            background: #000;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .info {
+            padding: 20px 30px;
+            background: #f3f4f6;
+            border-top: 2px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .fullscreen-mode #dosContainer {
+            height: 100vh;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 20px;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            button {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            #dosContainer {
+                height: 60vh;
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 DOS Game Player</h1>
+            <div class="controls">
+                <button id="homeBtn" title="Back to Home">🏠 Home</button>
+                <button id="fullscreenBtn" title="Toggle Fullscreen (F11)">⛶ Fullscreen</button>
+                <button id="restartBtn" title="Restart Game">↻ Restart</button>
+            </div>
+        </div>
+        <div class="game-wrapper">
+            <div class="loading" id="loading">Loading game</div>
+            <div id="dosContainer"></div>
+        </div>
+        <div class="info">
+            Use Fullscreen for best experience • Press ESC to release mouse • All files loaded locally
+        </div>
+    </div>
+
+    <script src="lib/js-dos.js"></script>
+    <script>
+        let dosPlayer = null;
+        let isInFullscreen = false;
+
+        // Get game config from URL parameters
+        async function getGameConfig() {
+            // Read from hash (#?game=...)
+            const hashParams = new URLSearchParams(window.location.hash.substring(2));
+            const gameIdentifier = hashParams.get('game');
+            
+            console.log('Game identifier:', gameIdentifier);
+            
+            if (!gameIdentifier) {
+                throw new Error('No game ID specified in URL');
+            }
+            
+            // Load games.json and mapping.json
+            const [gamesResponse, mappingResponse] = await Promise.all([
+                fetch('games.json'),
+                fetch('mapping.json')
+            ]);
+            
+            const gamesData = await gamesResponse.json();
+            const mappingData = await mappingResponse.json();
+            
+            // Find the game
+            const game = gamesData.games[gameIdentifier];
+            if (!game) {
+                throw new Error(`Game "${gameIdentifier}" not found`);
+            }
+            
+            // Get the mapped filename
+            const mappedFilename = mappingData[gameIdentifier];
+            if (!mappedFilename) {
+                throw new Error(`No mapping found for game "${gameIdentifier}"`);
+            }
+            
+            // Construct the ZIP URL
+            const ZIP_URL_PREFIX = 'https://media.githubusercontent.com/media/biaomail/chinese-dos-games/refs/heads/roms/roms/';
+            const zipUrl = ZIP_URL_PREFIX + mappedFilename + '.zip';
+            
+            console.log('Game config:', {
+                identifier: gameIdentifier,
+                title: game.name['zh-Hans'] || gameIdentifier,
+                executable: game.executable,
+                zipUrl: zipUrl
+            });
+            
+            // Return game config
+            return {
+                title: game.name['zh-Hans'] || gameIdentifier,
+                path: zipUrl,
+                executable: game.executable
+            };
+        }
+
+        // Initialize the DOS player
+        async function initPlayer() {
+            const container = document.getElementById('dosContainer');
+            const loading = document.getElementById('loading');
+            
+            try {
+                const game = await getGameConfig();
+                loading.textContent = `Downloading ${game.title}...`;
+                
+                // Download the game ZIP
+                const response = await fetch(game.path);
+                if (!response.ok) {
+                    throw new Error(`Failed to download game: ${response.statusText}`);
+                }
+                
+                loading.textContent = `Processing ${game.title}...`;
+                const gameZipBlob = await response.blob();
+                
+                // Load JSZip library dynamically if needed, or use it if already loaded
+                const JSZip = window.JSZip || await loadJSZip();
+                
+                // Load the game ZIP
+                const zip = await JSZip.loadAsync(gameZipBlob);
+                
+                // Find the executable in the ZIP to determine its path
+                let exePath = '';
+                let exeDir = '';
+                let exeName = game.executable || '';
+                
+                if (game.executable) {
+                    // Search for the executable in the ZIP
+                    const files = Object.keys(zip.files);
+                    console.log('Searching for executable:', game.executable);
+                    console.log('Files in ZIP:', files);
+                    
+                    const exeFile = files.find(f => 
+                        f.toUpperCase().endsWith(game.executable.toUpperCase()) ||
+                        f.toUpperCase().includes(game.executable.toUpperCase())
+                    );
+                    
+                    if (exeFile) {
+                        exePath = exeFile;
+                        console.log('Found executable at:', exeFile);
+                        
+                        // Get directory path (everything before the last /)
+                        const lastSlash = exeFile.lastIndexOf('/');
+                        if (lastSlash > 0) {
+                            exeDir = exeFile.substring(0, lastSlash);
+                        }
+                    } else {
+                        console.warn('Executable not found in ZIP, will try to run it anyway');
+                    }
+                }
+                
+                // Create dosbox.conf content
+                let dosboxConf = `[cpu]
+core=auto
+cputype=auto
+cycles=auto
+
+[autoexec]
+@echo off
+mount c .
+c:
+`;
+                
+                if (exeDir) {
+                    dosboxConf += `cd ${exeDir}\n`;
+                }
+                
+                if (exeName) {
+                    dosboxConf += `${exeName}\n`;
+                }
+                
+                console.log('Generated dosbox.conf:', dosboxConf);
+                
+                // Add .jsdos/dosbox.conf to the ZIP
+                zip.folder('.jsdos');
+                zip.file('.jsdos/dosbox.conf', dosboxConf);
+                
+                // Generate the new bundle as a blob
+                loading.textContent = `Creating bundle for ${game.title}...`;
+                const bundleBlob = await zip.generateAsync({type: 'blob'});
+                const bundleUrl = URL.createObjectURL(bundleBlob);
+                
+                loading.textContent = `Starting ${game.title}...`;
+                
+                dosPlayer = Dos(container, {
+                    url: bundleUrl,
+                    pathPrefix: 'lib/emulators/',
+                    autoStart: true,
+                    noCloud: true,
+                    thinSidebar: false,
+                    onEvent: (event, ci) => {
+                        console.log('js-dos event:', event);
+                        if (event === 'emu-ready') {
+                            loading.style.display = 'none';
+                        }
+                    }
+                });
+                
+                console.log('DOS player initialized:', game.title);
+            } catch (error) {
+                console.error('Error:', error);
+                loading.textContent = 'Error: ' + error.message;
+                loading.style.color = '#ef4444';
+                loading.style.animation = 'none';
+            }
+        }
+        
+        // Load JSZip library dynamically
+        async function loadJSZip() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                script.onload = () => resolve(window.JSZip);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Home button
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // Fullscreen toggle
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (dosPlayer) {
+                isInFullscreen = !isInFullscreen;
+                dosPlayer.setFullScreen(isInFullscreen);
+                document.getElementById('fullscreenBtn').textContent = isInFullscreen ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
+            }
+        });
+
+        // Restart game
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            if (confirm('Restart game? Unsaved progress will be lost.')) {
+                if (dosPlayer) dosPlayer.stop();
+                setTimeout(() => {
+                    const loading = document.getElementById('loading');
+                    loading.style.display = 'block';
+                    loading.style.color = 'white';
+                    loading.style.animation = '';
+                    initPlayer();
+                }, 500);
+            }
+        });
+
+
+
+        // Fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            document.getElementById('fullscreenBtn').textContent = isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isInFullscreen && dosPlayer) {
+                dosPlayer.setFullScreen(false);
+                isInFullscreen = false;
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initPlayer();
+        });
+    </script>
+</body>
+</html>

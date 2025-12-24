@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中文 DOS 游戏合集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .controls {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .sort-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn:hover, .sort-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .games-grid {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .game-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .game-cover {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .game-info {
+            padding: 20px;
+        }
+        
+        .game-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .game-title-en {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .game-b64name {
+            font-size: 0.85em;
+            color: #999;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 12px;
+            word-break: break-all;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .game-links {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .game-link {
+            font-size: 0.85em;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+        
+        .game-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        .game-link::before {
+            content: "🔗";
+            font-size: 0.9em;
+        }
+        
+        .game-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #777;
+        }
+        
+        .game-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 中文 DOS 游戏合集</h1>
+            <p>Chinese DOS Games Collection</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-games">0</div>
+                    <div>游戏总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-size">0 GB</div>
+                    <div>总大小</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索游戏名称...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="sort-buttons">
+                <button class="sort-btn active" data-sort="name">按名称</button>
+                <button class="sort-btn" data-sort="year">按年份</button>
+                <button class="sort-btn" data-sort="size">按大小</button>
+            </div>
+        </div>
+        
+        <div class="games-grid" id="games-grid">
+            <!-- Games will be inserted here by JavaScript -->
+        </div>
+        
+        <footer>
+            <p>数据来源: <a href="https://github.com/rwv/chinese-dos-games" target="_blank">github.com/rwv/chinese-dos-games</a></p>
+            <p style="margin-top: 10px;">文件服务器: <strong>https://dos-bin.zczc.cz/</strong></p>
+        </footer>
+    </div>
+
+    <script>
+        const ZIP_URL_PREFIX = 'https://media.githubusercontent.com/media/biaomail/chinese-dos-games/refs/heads/roms/roms/';
+        const DOWNLOAD_PREFIX = 'https://dos-bin.zczc.cz/';
+        let gamesData = [];
+        let mappingData = {};
+        let currentSort = 'name';
+
+        // Load games data
+        async function loadGames() {
+            try {
+                const [gamesResponse, mappingResponse] = await Promise.all([
+                    fetch('games.json'),
+                    fetch('mapping.json')
+                ]);
+                const data = await gamesResponse.json();
+                mappingData = await mappingResponse.json();
+                gamesData = Object.values(data.games);
+                
+                // Calculate stats
+                const totalSize = gamesData.reduce((sum, game) => sum + (game.filesize || 0), 0);
+                document.getElementById('total-games').textContent = gamesData.length;
+                document.getElementById('total-size').textContent = (totalSize / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                
+                // Initial render
+                renderGames(gamesData);
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('games-grid').innerHTML = '<div class="no-results">加载游戏数据失败</div>';
+            }
+        }
+
+        // Base64 URL-safe encode (equivalent to Python's base64.urlsafe_b64encode)
+        function urlsafeB64Encode(str) {
+            // Encode UTF-8 string to base64
+            const base64 = btoa(unescape(encodeURIComponent(str)));
+            // Convert to URL-safe format and remove trailing '='
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        // Render games
+        function renderGames(games) {
+            const grid = document.getElementById('games-grid');
+            
+            if (games.length === 0) {
+                grid.innerHTML = '<div class="no-results">没有找到匹配的游戏</div>';
+                return;
+            }
+            
+            grid.innerHTML = games.map(game => {
+                const mappedFilename = mappingData[game.identifier] || urlsafeB64Encode(game.identifier);
+                const zipUrl = ZIP_URL_PREFIX + mappedFilename + '.zip';
+                const downloadUrl = DOWNLOAD_PREFIX + encodeURIComponent(game.identifier) + '.zip';
+                const coverUrl = game.coverFilename ? `https://raw.githubusercontent.com/rwv/chinese-dos-games/refs/heads/master/img/${encodeURIComponent(game.identifier)}/${game.coverFilename}` : '';
+                const nameZh = game.name['zh-Hans'] || game.identifier;
+                const nameEn = game.name.en || '';
+                const year = game.releaseYear || 'Unknown';
+                const size = game.filesize ? (game.filesize / (1024 * 1024)).toFixed(2) + ' MB' : 'Unknown';
+                // Format links if they exist
+                let linksHtml = '';
+                if (game.links && Object.keys(game.links).length > 0) {
+                    linksHtml = '<div class="game-links">';
+                    for (const [linkTitle, linkUrl] of Object.entries(game.links)) {
+                        linksHtml += `<a href="${linkUrl}" class="game-link" target="_blank" rel="noopener noreferrer">${linkTitle}</a>`;
+                    }
+                    linksHtml += '</div>';
+                }
+                
+                return `
+                    <div class="game-card">
+                        ${coverUrl ? `<img class="game-cover" src="${coverUrl}" alt="${nameZh}" onerror="this.style.display='none'">` : '<div class="game-cover"></div>'}
+                        <div class="game-info">
+                            <div class="game-title">${nameZh}</div>
+                            ${nameEn ? `<div class="game-title-en">${nameEn}</div>` : ''}
+                            ${linksHtml}
+                            <div class="game-meta">
+                                <span>📅 ${year}</span>
+                                <span>💾 ${size}</span>
+                            </div>
+                            <a href="game.html#?game=${encodeURIComponent(game.identifier)}" class="download-btn" style="margin-bottom: 10px;">🎮 玩游戏</a>
+                            <a href="${downloadUrl}" class="download-btn" download>⬇️ 下载 ZIP</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filtered = gamesData.filter(game => {
+                const nameZh = (game.name['zh-Hans'] || game.identifier).toLowerCase();
+                const nameZhHant = (game.name['zh-Hant'] || '').toLowerCase();
+                const nameEn = (game.name.en || '').toLowerCase();
+                return nameZh.includes(searchTerm) || nameZhHant.includes(searchTerm) || nameEn.includes(searchTerm);
+            });
+            sortAndRender(filtered, currentSort);
+        });
+
+        // Sort functionality
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSort = btn.dataset.sort;
+                const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+                const filtered = searchTerm ? gamesData.filter(game => {
+                    const nameZh = (game.name['zh-Hans'] || game.identifier).toLowerCase();
+                    const nameZhHant = (game.name['zh-Hant'] || '').toLowerCase();
+                    const nameEn = (game.name.en || '').toLowerCase();
+                    return nameZh.includes(searchTerm) || nameZhHant.includes(searchTerm) || nameEn.includes(searchTerm);
+                }) : gamesData;
+                sortAndRender(filtered, currentSort);
+            });
+        });
+
+        function sortAndRender(games, sortBy) {
+            const sorted = [...games].sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return (a.name['zh-Hans'] || a.identifier).localeCompare(b.name['zh-Hans'] || b.identifier, 'zh-CN');
+                    case 'year':
+                        return (b.releaseYear || 0) - (a.releaseYear || 0);
+                    case 'size':
+                        return (b.filesize || 0) - (a.filesize || 0);
+                    default:
+                        return 0;
+                }
+            });
+            renderGames(sorted);
+        }
+
+        // Initialize
+        loadGames();
+    </script>
+</body>
+</html>
